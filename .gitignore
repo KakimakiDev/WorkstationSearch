@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+artifacts/
+*.dll
+*.pdb
+*.user
+.vs/
+*.cfg
+*.log
+local.ps1
