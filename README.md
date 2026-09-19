@@ -71,7 +71,7 @@ dotnet run --project tests/WorkstationSearch.Tests.csproj -c Release
 
 Package a built plugin with `./package.ps1`. The output is a manual-install ZIP under `artifacts`. This is not yet a Thunderstore submission package.
 
-Version 0.5.0 is the initial Workstation Search release candidate, renamed from Craft Search 0.4.4. Automated checks do not replace in-game testing. See [validation](docs/VALIDATION.md) for release checks and limitations.
+Version 0.5.1 is a Workstation Search release candidate with typed metadata categories and a separate English search vocabulary. Workstation Search was renamed from Craft Search 0.4.4. Automated checks do not replace in-game testing. See [validation](docs/VALIDATION.md) for release checks and limitations.
 
 ## Reporting issues
 

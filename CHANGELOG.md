@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1 - Release candidate
+
+- Classify metadata using typed game enums and compact category IDs.
+- Define shared armour, ammunition, accessory and magic relationships once.
+- Separate English synonyms and explicit plural/spelling forms from item metadata.
+- Resolve category words once per query term, including shared typo candidates only when needed.
+- Preserve existing aliases, title ranking, favourites, partial-name search and direct-before-fuzzy matching.
+- Add vocabulary compatibility and metadata classification regression checks.
+
 ## 0.5.0 - Release candidate
 
 - Rename Craft Search to Workstation Search, retaining the plugin ID and favourite configuration.

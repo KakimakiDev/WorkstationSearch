@@ -22,7 +22,7 @@ namespace WorkstationSearch
                 string name = Localization.instance.Localize(recipe.m_item.m_itemData.m_shared.m_name);
                 string prefab = recipe.m_item.name;
                 var tags = ItemTags.Get(recipe.m_item.m_itemData.m_shared);
-                if (!Entries.TryGetValue(recipe, out var old) || old.Name != name || old.Prefab != prefab || !old.Tags.SequenceEqual(tags))
+                if (!Entries.TryGetValue(recipe, out var old) || old.Name != name || old.Prefab != prefab || !old.Categories.SequenceEqual(tags))
                     Entries[recipe] = new SpellingEntry(name, prefab, tags);
             }
             foreach (var recipe in new List<Recipe>(Entries.Keys))

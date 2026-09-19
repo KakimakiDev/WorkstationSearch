@@ -3,6 +3,9 @@
   <ItemGroup>
     <Compile Include="../src/SearchQuery.cs" Link="SearchQuery.cs" />
     <Compile Include="../src/SpellingEntry.cs" Link="SpellingEntry.cs" />
+    <Compile Include="../src/ItemTags.cs" Link="ItemTags.cs" />
+    <Compile Include="../src/ItemCategory.cs" Link="ItemCategory.cs" />
+    <Compile Include="../src/SearchVocabulary.cs" Link="SearchVocabulary.cs" />
     <Compile Include="../src/ItemTagRules.cs" Link="ItemTagRules.cs" />
     <Compile Include="../src/FavoriteSet.cs" Link="FavoriteSet.cs" />
   </ItemGroup>

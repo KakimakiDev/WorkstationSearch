@@ -54,9 +54,9 @@ internal static class Program
         Check("direct match excludes fuzzy alternatives", !approximate && found.SequenceEqual(new[] { sword }));
         found = new SearchQuery("zzzz").SelectMatches(corpus, x => x, out approximate);
         Check("no false status on no results", !approximate && found.Count == 0);
-        var greaves = new SpellingEntry("Iron Greaves", "ArmorIronLegs", ItemTagRules.Build("Legs", "None", false));
-        var boots = new SpellingEntry("Leather Boots", "LeatherLegs", ItemTagRules.Build("Legs", "None", false));
-        var helmet = new SpellingEntry("Iron Helmet", "ArmorIronHelmet", ItemTagRules.Build("Helmet", "None", false));
+        var greaves = new SpellingEntry("Iron Greaves", "ArmorIronLegs", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Legs, Skills.SkillType.None, false));
+        var boots = new SpellingEntry("Leather Boots", "LeatherLegs", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Legs, Skills.SkillType.None, false));
+        var helmet = new SpellingEntry("Iron Helmet", "ArmorIronHelmet", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Helmet, Skills.SkillType.None, false));
         var armor = new[] { helmet, boots, greaves };
         found = new SearchQuery("boots").SelectMatches(armor, x => x, out approximate);
         Check("literal boots do not suppress slot matches", !approximate && found.SequenceEqual(new[] { boots, greaves }));
@@ -67,18 +67,18 @@ internal static class Program
         found = new SearchQuery("iron bots").SelectMatches(armor, x => x, out approximate);
         Check("typo in synonym", approximate && found.SequenceEqual(new[] { greaves }));
         Check("metadata works without name hints", new SearchQuery("pants").SelectMatches(new[] {
-            new SpellingEntry("Modded Relic", "Relic01", ItemTagRules.Build("Legs", "None", false)) }, x => x, out approximate).Count == 1);
+            new SpellingEntry("Modded Relic", "Relic01", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Legs, Skills.SkillType.None, false)) }, x => x, out approximate).Count == 1);
         Check("tags do not change favourite priority", FavoriteSet.First(
             new SearchQuery("boots").SelectMatches(armor, x => x, out approximate), x => x == greaves).First() == greaves);
-        Check("weapon skill aliases", ItemTagRules.Build("OneHandedWeapon", "Knives", false).Contains("dagger"));
-        Check("nonweapon default skill ignored", !ItemTagRules.Build("Material", "Swords", false).Contains("sword"));
-        Check("food from stats", ItemTagRules.Build("Consumable", "None", true).Contains("food"));
-        var resistant = new SpellingEntry("Protective Cloak", "Cape01", ItemTagRules.Build("Shoulder", "None", false, new[] { "resist-frost" }));
+        Check("weapon skill aliases", ItemTagRules.Build(ItemDrop.ItemData.ItemType.OneHandedWeapon, Skills.SkillType.Knives, false).Contains(ItemCategory.Knives));
+        Check("nonweapon default skill ignored", !ItemTagRules.Build(ItemDrop.ItemData.ItemType.Material, Skills.SkillType.Swords, false).Contains(ItemCategory.Swords));
+        Check("food from stats", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Consumable, Skills.SkillType.None, true).Contains(ItemCategory.Food));
+        var resistant = new SpellingEntry("Protective Cloak", "Cape01", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Shoulder, Skills.SkillType.None, false, new[] { ItemCategory.ResistFrost }));
         Check("resistance separated from offensive damage", new SearchQuery("frost").SelectMatches(new[] { resistant }, x => x, out approximate).Count == 0);
         Check("explicit resistance query", new SearchQuery("resist-frost cloak").SelectMatches(new[] { resistant }, x => x, out approximate).Count == 1 && !approximate);
-        Check("unknown mod category safe", ItemTagRules.Build("CustomSlot", "None", false).Length == 0);
-        var arrowTags = ItemTagRules.Build("Ammo", "None", false, ammoType: "$ammo_arrows");
-        var boltTags = ItemTagRules.Build("Ammo", "None", false, ammoType: "$ammo_bolts");
+        Check("unknown mod category safe", ItemTagRules.Build(((ItemDrop.ItemData.ItemType)999), Skills.SkillType.None, false).Length == 0);
+        var arrowTags = ItemTagRules.Build(ItemDrop.ItemData.ItemType.Ammo, Skills.SkillType.None, false, ammoType: "$ammo_arrows");
+        var boltTags = ItemTagRules.Build(ItemDrop.ItemData.ItemType.Ammo, Skills.SkillType.None, false, ammoType: "$ammo_bolts");
         var silver = new SpellingEntry("Silver Arrow", "ArrowSilver", arrowTags);
         var wood = new SpellingEntry("Wood Arrow", "ArrowWood", arrowTags);
         var fire = new SpellingEntry("Fire Arrow", "ArrowFire", arrowTags);
@@ -89,11 +89,11 @@ internal static class Program
         Check("singular arrow unchanged", new SearchQuery("arrow").SelectMatches(ammo, x => x, out approximate).SequenceEqual(found));
         Check("plural bolts excludes arrows", new SearchQuery("bolts").SelectMatches(ammo, x => x, out approximate).SequenceEqual(new[] { bolt }) && !approximate);
         Check("material plus plural ammo", new SearchQuery("silver arrows").SelectMatches(ammo, x => x, out approximate).SequenceEqual(new[] { silver }));
-        Check("bows not labelled arrows", !ItemTagRules.Build("Bow", "Bows", false, ammoType: "$ammo_arrows").Contains("arrows"));
-        Check("custom ammo not guessed", !ItemTagRules.Build("Ammo", "None", false, ammoType: "$ammo_custom").Contains("arrows"));
-        Check("non equipable ammo", ItemTagRules.Build("AmmoNonEquipable", "None", false, ammoType: "$ammo_bolts").Contains("bolts"));
+        Check("bows not labelled arrows", !ItemTagRules.Build(ItemDrop.ItemData.ItemType.Bow, Skills.SkillType.Bows, false, ammoType: "$ammo_arrows").Contains(ItemCategory.Arrow));
+        Check("custom ammo not guessed", !ItemTagRules.Build(ItemDrop.ItemData.ItemType.Ammo, Skills.SkillType.None, false, ammoType: "$ammo_custom").Contains(ItemCategory.Arrow));
+        Check("non equipable ammo", ItemTagRules.Build(ItemDrop.ItemData.ItemType.AmmoNonEquipable, Skills.SkillType.None, false, ammoType: "$ammo_bolts").Contains(ItemCategory.Bolt));
         Check("plural arrow favourites first", FavoriteSet.First(found, x => x == fire).SequenceEqual(new[] { fire, silver, wood }));
-        var chestTags = ItemTagRules.Build("Chest", "None", false);
+        var chestTags = ItemTagRules.Build(ItemDrop.ItemData.ItemType.Chest, Skills.SkillType.None, false);
         var rag = new SpellingEntry("Rag Tunic", "RagChest", chestTags);
         var carapace = new SpellingEntry("Carapace Breastplate", "CarapaceChest", chestTags);
         var bronze = new SpellingEntry("Bronze Plate Tunic", "BreastplateBronze", chestTags);
@@ -110,10 +110,10 @@ internal static class Program
         Check("mixed name and tag terms rank by title coverage", new SearchQuery("bronze breastplate").RankMatches(new[] {
             bronze, new SpellingEntry("Bronze Breastplate", "Chest02", chestTags) }, x => x).Last() == bronze);
         Check("accent and case insensitive title ranking", new SearchQuery("EPEE").RankMatches(new[] {
-            new SpellingEntry("Other", "epee", new[] { "epee" }), new SpellingEntry("Épée", "Sword02") }, x => x).First().Name == "Épée");
+            new SpellingEntry("Other", "epee"), new SpellingEntry("Épée", "Sword02") }, x => x).First().Name == "Épée");
         Check("plural ammo ties preserve order", new SearchQuery("arrows").RankMatches(new[] { fire, silver, wood }, x => x)
             .SequenceEqual(new[] { fire, silver, wood }));
-        var harpoon = new SpellingEntry("Abyssal Harpoon", "SpearChitin", new[] { "weapon" });
+        var harpoon = new SpellingEntry("Abyssal Harpoon", "SpearChitin", new[] { ItemCategory.Weapon });
         var karve = harpoon.WithDisplayName("<color=orange>Harpoon: Karve #1</color>");
         var longship = harpoon.WithDisplayName("Harpoon: Longship #2");
         Check("display title indexed per row", new SearchQuery("karve").SelectMatches(new[] { karve, longship }, x => x, out approximate)
@@ -125,11 +125,15 @@ internal static class Program
         Check("display title has ranking priority", new SearchQuery("karve").RankMatches(new[] {
             new SpellingEntry("Other upgrade", "KarveOther"), karve }, x => x).First() == karve);
         Check("source catalogue not changed by row titles", harpoon.Name == "Abyssal Harpoon");
-        Console.WriteLine("65 search, ranking, row title, tag, typo and favourite behavior checks passed.");
+        VocabularyRegression.Run(Check);
+        MetadataRegression.Run(Check);
+        Console.WriteLine($"{checks} search, ranking, row title, category, typo and favourite behavior checks passed.");
         return 0;
     }
+    private static int checks;
     private static void Check(string name, bool result)
     {
+        checks++;
         if (!result) throw new Exception("Failed: " + name);
     }
 }

@@ -1,6 +1,6 @@
 # Release validation
 
-The automated test executable contains 65 checks for matching, tags, typo tolerance, ranking, favourites, persistence, and displayed row titles. These run independently of Unity. CI runs those checks only; a full plugin build requires local game assemblies.
+The automated test executable covers regression checks for matching, tags, typo tolerance, ranking, favourites, persistence, and displayed row titles. These run independently of Unity, with minimal test doubles for the game metadata types. A frozen legacy alias matrix checks both matching and exclusions; adapter tests cover damage, resistance and food. CI runs those checks only; a full plugin build requires local game assemblies.
 
 Before publishing a release binary, verify:
 

@@ -8,9 +8,14 @@ namespace WorkstationSearch
     internal sealed class SearchQuery
     {
         private readonly string[] terms;
-        internal SearchQuery(string text) => terms = (text ?? "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+        private readonly SearchTerm[] compiledTerms;
+        internal SearchQuery(string text)
+        {
+            terms = (text ?? "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+            compiledTerms = terms.Select(term => new SearchTerm(term)).ToArray();
+        }
         internal bool IsEmpty => terms.Length == 0;
-        internal bool FuzzyMatches(SpellingEntry entry) => entry != null && entry.FuzzyMatches(terms);
+        internal bool FuzzyMatches(SpellingEntry entry) => entry != null && entry.FuzzyMatches(compiledTerms);
         internal List<T> RankMatches<T>(IEnumerable<T> source, Func<T, SpellingEntry> entry)
         {
             if (IsEmpty) return source.ToList();
@@ -34,7 +39,7 @@ namespace WorkstationSearch
             var candidates = source.ToList();
             var matches = candidates.FindAll(row => {
                 var item = entry(row);
-                return item == null || item.DirectMatches(terms);
+                return item == null || item.DirectMatches(compiledTerms);
             });
             approximate = false;
             if (!IsEmpty && matches.Count == 0)

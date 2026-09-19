@@ -48,3 +48,11 @@ Explicit resistance, strong resistance or immunity supplies `resist-` followed b
 Armour sets, recipe ingredients, biomes, food-stat rankings, and custom equipment slots are not inferred. For example, `iron boots` needs `iron` in the name or prefab and a matching leg-equipment alias. Unknown ammo types keep generic ammunition tags rather than being guessed as arrows or bolts.
 
 Names and tags are cached in memory after joining. Opening inventory reconciles changed data, and normal recipe-list updates capture displayed row titles. No disk dictionary or network lookup is used.
+
+## Implementation
+
+`ItemTags` and `ItemTagRules` classify game metadata through typed enums. Items cache compact `ItemCategory` IDs rather than copies of English aliases. `CategoryHierarchy` adds shared parent categories, such as Legs to Armour and Arrow to Ammo.
+
+`SearchVocabulary` holds English synonyms and explicit word forms. For example, boots resolves to boot, then to Legs. Axes explicitly resolves to axe; arbitrary suffixes are never stripped. Name and prefab substring matching remain literal and accent-insensitive.
+
+Each query term resolves its category once. If no direct results exist, typo candidates from the shared vocabulary are computed once per term and reused across items. Title words remain cached per item. Favourites and title-priority ranking are unchanged. Description inference is not used.

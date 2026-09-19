@@ -10,40 +10,40 @@ namespace WorkstationSearch
     {
         internal readonly string Name;
         internal readonly string Prefab;
-        internal readonly string[] Tags;
+        internal readonly ItemCategory[] Categories;
         private readonly string sourceName;
         private readonly string[] words;
-        internal SpellingEntry(string name, string prefab, string[] tags = null, string originalName = null)
+        internal SpellingEntry(string name, string prefab, ItemCategory[] categories = null, string originalName = null)
         {
             Name = name;
             Prefab = prefab;
-            Tags = tags ?? new string[0];
+            Categories = categories ?? new ItemCategory[0];
             sourceName = originalName;
             words = Regex.Matches(Normalize((name ?? "") + " " + (sourceName ?? "")), @"[\p{L}\p{N}]+").Cast<Match>().Select(m => m.Value)
-                .Concat(Tags.Select(Normalize)).Distinct().ToArray();
+                .Distinct().ToArray();
         }
         internal SpellingEntry WithDisplayName(string title)
         {
             title = Regex.Replace(title ?? "", "<[^>]*>", "").Trim();
-            return title.Length == 0 || title == Name ? this : new SpellingEntry(title, Prefab, Tags, sourceName ?? Name);
+            return title.Length == 0 || title == Name ? this : new SpellingEntry(title, Prefab, Categories, sourceName ?? Name);
         }
-        internal bool MatchesTerm(string term) => SearchQuery.Contains(Name, term) || SearchQuery.Contains(Prefab, term) ||
-            SearchQuery.Contains(sourceName, term) ||
-            Tags.Any(tag => CultureInfo.InvariantCulture.CompareInfo.Compare(tag, term,
-                CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) == 0);
-        internal bool DirectMatches(string[] terms) => terms.All(MatchesTerm);
-        internal bool FuzzyMatches(string[] terms)
+        internal bool MatchesTerm(SearchTerm term) => SearchQuery.Contains(Name, term.Text) || SearchQuery.Contains(Prefab, term.Text) ||
+            SearchQuery.Contains(sourceName, term.Text) ||
+            (term.Category.HasValue && Categories.Contains(term.Category.Value));
+        internal bool DirectMatches(SearchTerm[] terms) => terms.All(MatchesTerm);
+        internal bool FuzzyMatches(SearchTerm[] terms)
         {
             foreach (var term in terms)
             {
                 if (MatchesTerm(term)) continue;
-                string normalized = Normalize(term);
-                if (normalized.Length < 4 || normalized.Any(c => !char.IsLetterOrDigit(c)) ||
-                    !words.Any(word => OneEdit(normalized, word))) return false;
+                string normalized = term.Normalized;
+                if (normalized.Length < 4 || normalized.Any(c => !char.IsLetterOrDigit(c))) return false;
+                if (!words.Any(word => OneEdit(normalized, word)) &&
+                    !term.ApproximateCategories.Any(category => Categories.Contains(category))) return false;
             }
             return true;
         }
-        private static string Normalize(string value)
+        internal static string Normalize(string value)
         {
             var result = new StringBuilder();
             foreach (char c in value.Normalize(NormalizationForm.FormD))

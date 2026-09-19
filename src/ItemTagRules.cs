@@ -1,52 +1,61 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using ItemType = ItemDrop.ItemData.ItemType;
+using SkillType = Skills.SkillType;
 
 namespace WorkstationSearch
 {
     internal static class ItemTagRules
     {
-        private static readonly Dictionary<string, string> Slots = new Dictionary<string, string> {
-            { "Legs", "leg legs boots boot greaves leggings pants trousers armour armor" },
-            { "Helmet", "helmet helmets hat hats head headgear armour armor" },
-            { "Chest", "chest tunic cuirass breastplate torso armour armor" },
-            { "Shoulder", "shoulder shoulders cape capes cloak cloaks" },
-            { "Hands", "hand hands glove gloves gauntlets" },
-            { "Shield", "shield shields" }, { "Utility", "utility accessory accessories" },
-            { "Trinket", "trinket trinkets accessory accessories" },
-            { "Ammo", "ammo ammunition" }, { "AmmoNonEquipable", "ammo ammunition" },
-            { "Material", "material materials resource resources" },
-            { "Consumable", "consumable consumables" }, { "Trophy", "trophy trophies" },
-            { "Fish", "fish" }, { "Tool", "tool tools" }, { "Torch", "torch torches" }
-        };
-        private static readonly Dictionary<string, string> Skills = new Dictionary<string, string> {
-            { "Swords", "sword swords" }, { "Knives", "knife knives dagger daggers" },
-            { "Clubs", "club clubs mace maces" }, { "Polearms", "polearm polearms atgeir atgeirs" },
-            { "Spears", "spear spears" }, { "Axes", "axe axes" }, { "Bows", "bow bows" },
-            { "Crossbows", "crossbow crossbows" }, { "Pickaxes", "pickaxe pickaxes mining" },
-            { "ElementalMagic", "magic elemental" }, { "BloodMagic", "magic blood" },
-            { "Fishing", "fishing" }
-        };
-        internal static string[] Build(string type, string skill, bool food, IEnumerable<string> properties = null, string ammoType = null)
+        internal static ItemCategory[] Build(ItemType type, SkillType skill, bool food,
+            IEnumerable<ItemCategory> properties = null, string ammoType = null)
         {
-            var tags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (Slots.TryGetValue(type, out var aliases)) tags.UnionWith(aliases.Split(' '));
-            // Only ammunition gets these tags. Bows also specify the ammo they
-            // consume, but should not appear in a search for arrows.
-            if (type == "Ammo" || type == "AmmoNonEquipable")
+            var categories = properties == null ? new List<ItemCategory>() : new List<ItemCategory>(properties);
+            switch (type)
             {
-                if (string.Equals(ammoType, "$ammo_arrows", StringComparison.Ordinal))
-                    tags.UnionWith(new[] { "arrow", "arrows" });
-                else if (string.Equals(ammoType, "$ammo_bolts", StringComparison.Ordinal))
-                    tags.UnionWith(new[] { "bolt", "bolts" });
+                case ItemType.Legs: categories.Add(ItemCategory.Legs); break;
+                case ItemType.Helmet: categories.Add(ItemCategory.Helmet); break;
+                case ItemType.Chest: categories.Add(ItemCategory.Chest); break;
+                case ItemType.Shoulder: categories.Add(ItemCategory.Shoulder); break;
+                case ItemType.Hands: categories.Add(ItemCategory.Hands); break;
+                case ItemType.Shield: categories.Add(ItemCategory.Shield); break;
+                case ItemType.Utility: categories.Add(ItemCategory.Utility); break;
+                case ItemType.Trinket: categories.Add(ItemCategory.Trinket); break;
+                case ItemType.Ammo: categories.Add(ItemCategory.Ammo); break;
+                case ItemType.AmmoNonEquipable: categories.Add(ItemCategory.Ammo); break;
+                case ItemType.Material: categories.Add(ItemCategory.Material); break;
+                case ItemType.Consumable: categories.Add(ItemCategory.Consumable); break;
+                case ItemType.Trophy: categories.Add(ItemCategory.Trophy); break;
+                case ItemType.Fish: categories.Add(ItemCategory.Fish); break;
+                case ItemType.Tool: categories.Add(ItemCategory.Tool); break;
+                case ItemType.Torch: categories.Add(ItemCategory.Torch); break;
             }
-            bool weapon = type == "OneHandedWeapon" || type == "TwoHandedWeapon" ||
-                type == "TwoHandedWeaponLeft" || type == "Bow" || type == "Attach_Atgeir";
-            if (weapon) tags.UnionWith(new[] { "weapon", "weapons" });
-            if ((weapon || type == "Tool") && Skills.TryGetValue(skill, out aliases)) tags.UnionWith(aliases.Split(' '));
-            if (food) tags.Add("food");
-            if (properties != null) tags.UnionWith(properties);
-            return tags.OrderBy(x => x, StringComparer.Ordinal).ToArray();
+            // Consuming ammunition does not make a bow an arrow or bolt.
+            if (type == ItemType.Ammo || type == ItemType.AmmoNonEquipable)
+            {
+                if (ammoType == "$ammo_arrows") categories.Add(ItemCategory.Arrow);
+                else if (ammoType == "$ammo_bolts") categories.Add(ItemCategory.Bolt);
+            }
+            bool weapon = type == ItemType.OneHandedWeapon || type == ItemType.TwoHandedWeapon ||
+                type == ItemType.TwoHandedWeaponLeft || type == ItemType.Bow || type == ItemType.Attach_Atgeir;
+            if (weapon) categories.Add(ItemCategory.Weapon);
+            if (weapon || type == ItemType.Tool)
+                switch (skill)
+                {
+                    case SkillType.Swords: categories.Add(ItemCategory.Swords); break;
+                    case SkillType.Knives: categories.Add(ItemCategory.Knives); break;
+                    case SkillType.Clubs: categories.Add(ItemCategory.Clubs); break;
+                    case SkillType.Polearms: categories.Add(ItemCategory.Polearms); break;
+                    case SkillType.Spears: categories.Add(ItemCategory.Spears); break;
+                    case SkillType.Axes: categories.Add(ItemCategory.Axes); break;
+                    case SkillType.Bows: categories.Add(ItemCategory.Bows); break;
+                    case SkillType.Crossbows: categories.Add(ItemCategory.Crossbows); break;
+                    case SkillType.Pickaxes: categories.Add(ItemCategory.Pickaxes); break;
+                    case SkillType.ElementalMagic: categories.Add(ItemCategory.ElementalMagic); break;
+                    case SkillType.BloodMagic: categories.Add(ItemCategory.BloodMagic); break;
+                    case SkillType.Fishing: categories.Add(ItemCategory.Fishing); break;
+                }
+            if (food) categories.Add(ItemCategory.Food);
+            return CategoryHierarchy.Expand(categories);
         }
     }
 }

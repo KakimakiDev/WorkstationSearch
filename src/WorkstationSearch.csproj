@@ -3,7 +3,7 @@
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AssemblyName>WorkstationSearch</AssemblyName>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <GameManaged Condition="'$(GameManaged)' == ''">$(VALHEIM_MANAGED)</GameManaged>
     <BepInExCore Condition="'$(BepInExCore)' == ''">$(BEPINEX_CORE)</BepInExCore>
   </PropertyGroup>
