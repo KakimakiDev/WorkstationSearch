@@ -49,7 +49,7 @@ internal static class VocabularyRegression
         check("arrow inherits ammo", CategoryHierarchy.Expand(new[] { ItemCategory.Arrow }).Contains(ItemCategory.Ammo));
         check("classification compact", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Legs, Skills.SkillType.None, false).Length == 2);
         var legs = new SpellingEntry("Relic", "Relic01", ItemTagRules.Build(ItemDrop.ItemData.ItemType.Legs, Skills.SkillType.None, false));
-        check("case and accents in aliases", new SearchQuery("BÓÓTS").SelectMatches(new[] { legs }, x => x, out bool approximate).Count == 1 && !approximate);
+        check("case and accents in aliases", new SearchQuery("B\u00d3\u00d3TS").SelectMatches(new[] { legs }, x => x, out bool approximate).Count == 1 && !approximate);
         check("partial aliases are not expanded", !legs.DirectMatches(new[] { new SearchTerm("boo") }));
         check("plural typo remains eligible", new SearchQuery("botts").FuzzyMatches(legs));
         var ordinary = new SpellingEntry("Glass axe", "Object");
