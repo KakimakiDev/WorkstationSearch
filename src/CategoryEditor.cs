@@ -122,8 +122,10 @@ namespace WorkstationSearch
             terms.placeholder = placeholder;
             terms.targetGraphic = image;
             terms.lineType = TMP_InputField.LineType.SingleLine;
-            terms.characterLimit = 512;
-            terms.text = string.Join(", ", draft.Terms);
+            string savedWords = string.Join(", ", draft.Terms);
+            // Formatting saved words with commas must not truncate an existing record.
+            terms.characterLimit = Mathf.Max(512, savedWords.Length);
+            terms.text = savedWords;
             Text(panel, "Separate words with spaces or commas. Names remain searchable when categories are disabled.\nSettings stay saved even if the item's mod is removed.", 20, 525, 720, 42, 15);
             status = Text(panel, "", 20, 574, 720, 30, 15);
             Button(panel, "Reset to automatic", 20, 620, 240, 34, () =>
