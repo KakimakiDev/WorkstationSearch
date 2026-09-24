@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.4
+
+- Keep the classification scrollbar handle within its track at every scroll position.
+
 ## 0.6.3
 
 - Increase mouse-wheel scrolling speed in the classification menu.

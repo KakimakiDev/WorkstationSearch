@@ -93,7 +93,10 @@ namespace WorkstationSearch
             var track = Rect("Scrollbar", panel, 730, 144, 10, 292);
             track.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0.5f);
             var sliding = Rect("Sliding Area", track, 0, 0, 10, 292);
-            var handle = Rect("Handle", sliding, 0, 0, 10, 30);
+            SearchPanel.Stretch(sliding);
+            var handle = Rect("Handle", sliding, 0, 0, 0, 0);
+            // Scrollbar controls the handle anchors. Extra offsets would extend it past the track.
+            SearchPanel.Stretch(handle);
             var handleImage = handle.gameObject.AddComponent<Image>();
             handleImage.color = new Color(0.8f, 0.58f, 0.25f);
             var scrollbar = track.gameObject.AddComponent<Scrollbar>();
