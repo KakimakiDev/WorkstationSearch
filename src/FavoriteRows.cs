@@ -185,6 +185,7 @@ namespace WorkstationSearch
             if (!marker)
             {
                 marker = new GameObject("CraftSearchFavorite", typeof(RectTransform));
+                marker.SetActive(false);
                 var rect = (RectTransform)marker.transform;
                 // Overlay a small star on the item icon, leaving names, quality
                 // and durability in their original positions.
@@ -213,6 +214,7 @@ namespace WorkstationSearch
                 {
                     var text = marker.AddComponent<TextMeshProUGUI>();
                     text.font = gui.m_recipeName.font;
+                    text.fontSharedMaterial = gui.m_recipeName.fontSharedMaterial;
                     text.text = "★";
                     text.fontSize = 14;
                     text.color = new Color(1, 0.8f, 0.3f);

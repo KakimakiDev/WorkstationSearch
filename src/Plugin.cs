@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.6.1")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.2")]
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string Id = "local.valheim.craftsearch";
@@ -66,7 +66,7 @@ namespace WorkstationSearch
             Favorites = new FavoriteSet(savedFavorites.Value);
             harmony = new Harmony(Id);
             harmony.PatchAll();
-            Logger.LogInfo("Workstation Search 0.6.1 loaded");
+            Logger.LogInfo("Workstation Search 0.6.2 loaded");
         }
         private void OnDestroy()
         {
@@ -291,15 +291,20 @@ namespace WorkstationSearch
         }
         internal static TextMeshProUGUI Label(string name, Transform parent, TMP_Text source, string value)
         {
-            var label = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
-            label.transform.SetParent(parent, false);
+            // Assign the game font before TMP awakens and looks for its default font.
+            var labelObject = new GameObject(name, typeof(RectTransform));
+            labelObject.SetActive(false);
+            labelObject.transform.SetParent(parent, false);
+            var label = labelObject.AddComponent<TextMeshProUGUI>();
             Stretch(label.rectTransform);
             label.font = source.font;
+            label.fontSharedMaterial = source.fontSharedMaterial;
             label.fontSize = 18;
             label.color = new Color(1, 0.88f, 0.65f);
             FixBaseline(label);
             label.raycastTarget = false;
             label.text = value;
+            labelObject.SetActive(true);
             return label;
         }
         private void Update()

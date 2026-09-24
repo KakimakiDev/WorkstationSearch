@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2
+
+- Replace category text markers with clickable checkbox controls.
+
+- Assign Valheim fonts before text components activate, preventing missing LiberationSans font warnings when opening the category editor.
+
 ## 0.6.1
 
 - Remove the approximate-matches label while keeping typo fallback.

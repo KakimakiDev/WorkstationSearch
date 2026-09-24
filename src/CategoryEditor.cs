@@ -21,6 +21,9 @@ namespace WorkstationSearch
         private CategoryOverride draft;
         private TMP_InputField terms;
         private TMP_Text status;
+        private readonly Dictionary<ItemCategory, Toggle> toggles = new Dictionary<ItemCategory, Toggle>();
+        private Sprite checkSprite;
+        private Texture2D checkTexture;
         private readonly Dictionary<ItemCategory, TMP_Text> labels = new Dictionary<ItemCategory, TMP_Text>();
 
         internal static void Open(InventoryGui owner, SpellingEntry entry)
@@ -68,7 +71,7 @@ namespace WorkstationSearch
             Text(panel, "Search categories", 20, 14, 720, 32, 24);
             var title = Text(panel, item.Name, 20, 49, 720, 30, 20);
             title.overflowMode = TextOverflowModes.Ellipsis;
-            Text(panel, "Click categories to enable or disable them. [x] means enabled; auto means detected.\nChanges apply to this item type in Craft and Upgrade.", 20, 86, 720, 48, 16);
+            Text(panel, "Check categories to enable them. Categories marked auto were detected.\nChanges apply to this item type in Craft and Upgrade.", 20, 86, 720, 48, 16);
 
             var view = Rect("Categories", panel, 20, 144, 704, 292);
             view.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0.2f);
@@ -85,13 +88,7 @@ namespace WorkstationSearch
             for (int i = 0; i < categories.Length; i++)
             {
                 var category = categories[i];
-                var label = Button(content, "", (i % 3) * 235, (i / 3) * 42, 228, 38, () =>
-                {
-                    draft.Toggle(category, item.Categories);
-                    RefreshLabels();
-                });
-                label.fontSize = 14;
-                labels.Add(category, label);
+                AddCategoryToggle(content, category, (i % 3) * 235, (i / 3) * 42);
             }
             var track = Rect("Scrollbar", panel, 730, 144, 10, 292);
             track.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0.5f);
@@ -158,10 +155,64 @@ namespace WorkstationSearch
             foreach (var pair in labels)
             {
                 bool enabled = effective.Contains(pair.Key);
-                pair.Value.text = (enabled ? "[x] " : "[ ] ") + Friendly(pair.Key) +
+                toggles[pair.Key].SetIsOnWithoutNotify(enabled);
+                pair.Value.text = Friendly(pair.Key) +
                     (item.Categories.Contains(pair.Key) ? " (auto)" : "");
                 pair.Value.color = enabled ? new Color(1, 0.8f, 0.35f) : new Color(0.68f, 0.66f, 0.62f);
             }
+        }
+        private void AddCategoryToggle(Transform parent, ItemCategory category, float x, float y)
+        {
+            var root = Rect(category.ToString(), parent, x, y, 228, 38);
+            root.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0.18f);
+            var toggle = root.gameObject.AddComponent<Toggle>();
+            var border = Rect("Checkbox", root, 5, 8, 22, 22);
+            border.gameObject.AddComponent<Image>().color = new Color(0.7f, 0.56f, 0.32f);
+            var box = Rect("Background", border, 2, 2, 18, 18).gameObject.AddComponent<Image>();
+            box.color = new Color(0.18f, 0.16f, 0.12f);
+            var check = Rect("Checkmark", border, 1, 1, 20, 20).gameObject.AddComponent<Image>();
+            if (!checkSprite) CreateCheckmark();
+            check.sprite = checkSprite;
+            check.color = new Color(1, 0.8f, 0.35f);
+            check.raycastTarget = false;
+            SearchPanel.CopySelectable(gui.m_craftCancelButton, toggle);
+            toggle.targetGraphic = box;
+            toggle.graphic = check;
+            toggle.toggleTransition = Toggle.ToggleTransition.None;
+            labels.Add(category, Text(root, "", 34, 0, 190, 38, 14));
+            toggles.Add(category, toggle);
+            toggle.onValueChanged.AddListener(enabled =>
+            {
+                if (draft.Apply(item.Categories).Contains(category) != enabled)
+                    draft.Toggle(category, item.Categories);
+                RefreshLabels();
+            });
+        }
+        private void CreateCheckmark()
+        {
+            // A small UI checkmark independent of font glyph availability.
+            checkTexture = new Texture2D(32, 32, TextureFormat.RGBA32, false);
+            checkTexture.name = "WorkstationSearchCheckmark";
+            checkTexture.wrapMode = TextureWrapMode.Clamp;
+            checkTexture.filterMode = FilterMode.Bilinear;
+            var a = new Vector2(5, 16);
+            var b = new Vector2(13, 8);
+            var c = new Vector2(27, 25);
+            for (int y = 0; y < 32; y++)
+                for (int x = 0; x < 32; x++)
+                {
+                    var point = new Vector2(x + 0.5f, y + 0.5f);
+                    float distance = Mathf.Min(SegmentDistance(point, a, b), SegmentDistance(point, b, c));
+                    checkTexture.SetPixel(x, y, new Color(1, 1, 1, Mathf.Clamp01(2.6f - distance)));
+                }
+            checkTexture.Apply(false, true);
+            checkSprite = Sprite.Create(checkTexture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32);
+        }
+        private static float SegmentDistance(Vector2 point, Vector2 a, Vector2 b)
+        {
+            var direction = b - a;
+            float t = Mathf.Clamp01(Vector2.Dot(point - a, direction) / direction.sqrMagnitude);
+            return Vector2.Distance(point, a + direction * t);
         }
         private static string Friendly(ItemCategory category) => Regex.Replace(category.ToString(), "([a-z])([A-Z])", "$1 $2");
         private TMP_Text Button(Transform parent, string title, float x, float y, float width, float height, UnityEngine.Events.UnityAction action)
@@ -206,6 +257,8 @@ namespace WorkstationSearch
         private void OnDestroy()
         {
             if (current == this) current = null;
+            if (checkSprite) Destroy(checkSprite);
+            if (checkTexture) Destroy(checkTexture);
         }
     }
 }
