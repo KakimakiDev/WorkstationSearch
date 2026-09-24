@@ -127,6 +127,7 @@ internal static class Program
         Check("source catalogue not changed by row titles", harpoon.Name == "Abyssal Harpoon");
         VocabularyRegression.Run(Check);
         MetadataRegression.Run(Check);
+        OverrideRegression.Run(Check);
         Console.WriteLine($"{checks} search, ranking, row title, category, typo and favourite behavior checks passed.");
         return 0;
     }

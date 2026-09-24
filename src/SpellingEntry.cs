@@ -12,23 +12,28 @@ namespace WorkstationSearch
         internal readonly string Prefab;
         internal readonly ItemCategory[] Categories;
         private readonly string sourceName;
+        private readonly string[] customTerms;
         private readonly string[] words;
-        internal SpellingEntry(string name, string prefab, ItemCategory[] categories = null, string originalName = null)
+        internal SpellingEntry(string name, string prefab, ItemCategory[] categories = null, string originalName = null, string[] terms = null)
         {
             Name = name;
             Prefab = prefab;
             Categories = categories ?? new ItemCategory[0];
             sourceName = originalName;
+            customTerms = (terms ?? new string[0]).Select(Normalize).Distinct().ToArray();
             words = Regex.Matches(Normalize((name ?? "") + " " + (sourceName ?? "")), @"[\p{L}\p{N}]+").Cast<Match>().Select(m => m.Value)
-                .Distinct().ToArray();
+                .Concat(customTerms).Distinct().ToArray();
         }
         internal SpellingEntry WithDisplayName(string title)
         {
             title = Regex.Replace(title ?? "", "<[^>]*>", "").Trim();
-            return title.Length == 0 || title == Name ? this : new SpellingEntry(title, Prefab, Categories, sourceName ?? Name);
+            return title.Length == 0 || title == Name ? this : new SpellingEntry(title, Prefab, Categories, sourceName ?? Name, customTerms);
         }
+        internal SpellingEntry WithSearchCategories(ItemCategory[] categories, string[] terms) =>
+            new SpellingEntry(Name, Prefab, categories, sourceName, terms);
         internal bool MatchesTerm(SearchTerm term) => SearchQuery.Contains(Name, term.Text) || SearchQuery.Contains(Prefab, term.Text) ||
             SearchQuery.Contains(sourceName, term.Text) ||
+            customTerms.Contains(term.Normalized) ||
             (term.Category.HasValue && Categories.Contains(term.Category.Value));
         internal bool DirectMatches(SearchTerm[] terms) => terms.All(MatchesTerm);
         internal bool FuzzyMatches(SearchTerm[] terms)

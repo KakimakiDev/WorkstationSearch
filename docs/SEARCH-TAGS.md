@@ -56,3 +56,11 @@ Names and tags are cached in memory after joining. Opening inventory reconciles 
 `SearchVocabulary` holds English synonyms and explicit word forms. For example, boots resolves to boot, then to Legs. Axes explicitly resolves to axe; arbitrary suffixes are never stripped. Name and prefab substring matching remain literal and accent-insensitive.
 
 Each query term resolves its category once. If no direct results exist, typo candidates from the shared vocabulary are computed once per term and reused across items. Title words remain cached per item. Favourites and title-priority ranking are unchanged. Description inference is not used.
+
+## Per-item overrides
+
+Ctrl + middle-click a recipe to edit its categories. Added categories include their parent categories; explicit exclusions are applied after inheritance, so an excluded category stays disabled. Automatically detected parent categories can also be switched off independently. Reset to automatic removes only the selected prefab's record when saved.
+
+Custom words match whole query words, ignoring case and accents, and participate in the usual typo fallback. They do not gain title-ranking priority. Names, prefab names and displayed titles remain searchable regardless of category exclusions.
+
+The profile configuration stores overrides by the exact prefab ID. Catalogue rebuilds and mod removal never prune these records. Reinstalling a mod with the same prefab IDs restores its overrides; an item renamed to a different prefab ID is treated as a different item. Unknown saved category names are retained across plugin versions. Unreadable override data is logged and editing is disabled to avoid overwriting it.

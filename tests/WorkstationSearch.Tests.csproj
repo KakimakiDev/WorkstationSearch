@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><RestoreSources></RestoreSources></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../src/CategoryOverrides.cs" Link="CategoryOverrides.cs" />
     <Compile Include="../src/SearchQuery.cs" Link="SearchQuery.cs" />
     <Compile Include="../src/SpellingEntry.cs" Link="SpellingEntry.cs" />
     <Compile Include="../src/ItemTags.cs" Link="ItemTags.cs" />

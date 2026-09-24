@@ -10,6 +10,7 @@ A client-side Valheim mod that adds search and favourites to the crafting and up
 - Keep favourite recipes at the top, with favourites saved between sessions.
 - Prioritise item-name matches over category-only matches.
 - Find close spelling matches when a search has no direct results.
+- Customize categories and search words for individual item types.
 
 ## Installation
 
@@ -30,12 +31,26 @@ To update, close Valheim and replace the installed `WorkstationSearch.dll` with 
 | Clear search | Click X |
 | Finish typing | Enter or Escape |
 | Toggle favourite | Middle-click a recipe |
+| Edit search categories | Ctrl + middle-click a recipe |
 
 Matching favourites appear first, followed by other matching recipes. Within each group, matches in the item title take priority over category matches. Equally relevant results keep the game's sorting order.
 
 Switching between Craft and Upgrade keeps your search. Closing the inventory clears it. Search changes take effect after an active craft or upgrade finishes; favourites cannot be toggled during that operation.
 
 Favourites are shared across Craft, Upgrade, and characters in the same mod profile. They are saved in `BepInEx/config/local.valheim.craftsearch.cfg`.
+
+## Custom search categories
+
+Hold Ctrl and middle-click a recipe to open its search settings. If an item is hidden by your current search, clear the search first.
+
+- Click a category to enable or disable it. Checked categories are active; categories marked `auto` were detected from the item.
+- Adding a category includes its synonyms, such as `boots` and `pants` for Legs. Related broad categories, such as Armour, are enabled too and can be disabled separately.
+- Add your own search words, separated by spaces or commas.
+- Click Save to apply changes immediately, or Cancel to discard them. Reset to automatic clears this item's overrides when you save.
+
+Settings apply to the item type across Craft and Upgrade, and are shared by characters in the same profile. They are stored alongside favourites in `BepInEx/config/local.valheim.craftsearch.cfg`. Overrides remain saved if a mod is removed and apply again when the same item returns. Other items' settings are kept when you reset one item.
+
+These settings change search results only. Item names remain searchable even if you disable their categories. The editor is unavailable while crafting or upgrading.
 
 ## Search behaviour
 

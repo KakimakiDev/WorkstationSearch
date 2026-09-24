@@ -60,13 +60,40 @@ namespace WorkstationSearch
                 var title = titleRoot ? titleRoot.GetComponent<TMP_Text>() : null;
                 if (title && !string.IsNullOrWhiteSpace(title.text))
                     entry = (entry ?? new SpellingEntry("", "")).WithDisplayName(title.text);
-                RowEntries[row] = entry;
+                RowEntries[row] = Plugin.Overrides.Apply(entry);
                 string key = Key(recipe);
                 if (string.IsNullOrEmpty(key)) continue;
                 var control = row.GetComponent<FavoriteRow>() ?? row.AddComponent<FavoriteRow>();
                 control.Initialize(__instance, key);
             }
             Apply(__instance, false);
+        }
+
+        private static SpellingEntry BaseEntry(object pair)
+        {
+            var row = (GameObject)Element.GetValue(pair, null);
+            var entry = SearchCatalog.Get((Recipe)RecipeProperty.GetValue(pair, null));
+            var titleRoot = row ? row.transform.Find("name") : null;
+            var title = titleRoot ? titleRoot.GetComponent<TMP_Text>() : null;
+            return title && entry != null ? entry.WithDisplayName(title.text) : entry;
+        }
+        internal static void Edit(GameObject row)
+        {
+            if (cachedRows == null) return;
+            var pair = cachedRows.Find(value => (GameObject)Element.GetValue(value, null) == row);
+            if (pair != null) CategoryEditor.Open(owner, BaseEntry(pair));
+        }
+        internal static void RefreshOverrides(string prefab)
+        {
+            if (cachedRows == null) return;
+            foreach (var pair in cachedRows)
+            {
+                var recipe = (Recipe)RecipeProperty.GetValue(pair, null);
+                if (Key(recipe) != prefab) continue;
+                var row = (GameObject)Element.GetValue(pair, null);
+                if (row) RowEntries[row] = Plugin.Overrides.Apply(BaseEntry(pair));
+            }
+            if (Plugin.Panel) Plugin.Panel.RequestRefresh();
         }
 
         internal static void Apply(InventoryGui __instance, bool updateSelection = true)
@@ -207,6 +234,13 @@ namespace WorkstationSearch
         {
             if (eventData.button != PointerEventData.InputButton.Middle || !gui ||
                 (float)CraftTimer.GetValue(gui) >= 0) return;
+            if (CategoryEditor.IsOpen) return;
+            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            {
+                FavoriteRows.Edit(gameObject);
+                eventData.Use();
+                return;
+            }
             Plugin.ToggleFavorite(key);
             marker.SetActive(Plugin.Favorites.Contains(key));
             if (Plugin.Panel) Plugin.Panel.RequestRefresh();

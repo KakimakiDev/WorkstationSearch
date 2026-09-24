@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Add Ctrl + middle-click to edit an item type's search categories and custom search words.
+- Support disabling automatic categories, adding categories with inherited aliases, and resetting an item to automatic detection.
+- Save overrides per prefab in the local profile, retaining entries when mods or items are removed.
+- Refresh matching recipe rows after saving while preserving custom titles, favourites and title ranking.
+- Block crafting shortcuts while the editor is open and keep edits separate until Save.
+
 ## 0.5.1 - Release candidate
 
 - Classify metadata using typed game enums and compact category IDs.

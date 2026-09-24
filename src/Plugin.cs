@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
@@ -10,7 +11,7 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.5.1")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.0")]
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string Id = "local.valheim.craftsearch";
@@ -18,6 +19,34 @@ namespace WorkstationSearch
         internal static SearchPanel Panel;
         private static ConfigEntry<string> savedFavorites;
         internal static FavoriteSet Favorites;
+        internal static CategoryOverrides Overrides = new CategoryOverrides();
+        private static ConfigEntry<string> savedOverrides;
+        private static bool overridesReadable = true;
+        private static Plugin instance;
+        internal static bool SaveOverride(string prefab, CategoryOverride value)
+        {
+            if (!overridesReadable) return false;
+            var next = CategoryOverrides.Load(Overrides.Save());
+            next.Set(prefab, value);
+            string previous = savedOverrides.Value;
+            bool saveOnSet = instance.Config.SaveOnConfigSet;
+            try
+            {
+                // Explicit save permits reporting write failures before applying the edit.
+                instance.Config.SaveOnConfigSet = false;
+                savedOverrides.Value = next.Save();
+                instance.Config.Save();
+                Overrides = next;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                savedOverrides.Value = previous;
+                instance.Logger.LogError("Could not save search categories: " + ex.Message);
+                return false;
+            }
+            finally { instance.Config.SaveOnConfigSet = saveOnSet; }
+        }
         internal static void ToggleFavorite(string key)
         {
             Favorites.Toggle(key);
@@ -25,14 +54,23 @@ namespace WorkstationSearch
         }
         private void Awake()
         {
+            instance = this;
+            savedOverrides = Config.Bind("Search categories", "Overrides", "", "Per-prefab category overrides and custom search terms. Kept when items or mods are absent. Edit in game with Ctrl + middle-click.");
+            try { Overrides = CategoryOverrides.Load(savedOverrides.Value); }
+            catch (Exception ex)
+            {
+                overridesReadable = false;
+                Logger.LogError("Search category overrides could not be read; saved data will be preserved. " + ex.Message);
+            }
             savedFavorites = Config.Bind("Favorites", "Items", "", "Favourite item prefab names. Shared by Craft and Upgrade in this profile.");
             Favorites = new FavoriteSet(savedFavorites.Value);
             harmony = new Harmony(Id);
             harmony.PatchAll();
-            Logger.LogInfo("Workstation Search 0.5.1 loaded");
+            Logger.LogInfo("Workstation Search 0.6.0 loaded");
         }
         private void OnDestroy()
         {
+            CategoryEditor.Close();
             harmony?.UnpatchSelf();
             if (Panel) Destroy(Panel);
         }
@@ -66,7 +104,7 @@ namespace WorkstationSearch
         [HarmonyPatch(typeof(InventoryGui), "Hide")]
         private static class ClearSearch
         {
-            private static void Postfix() { if (Panel) Panel.ResetSearch(); }
+            private static void Postfix() { CategoryEditor.Close(); if (Panel) Panel.ResetSearch(); }
         }
 
         [HarmonyPatch(typeof(TextInput), "IsVisible")]
@@ -114,7 +152,8 @@ namespace WorkstationSearch
         }
         internal void RequestRefresh() => pending = true;
         private static int blockedFrame = -1;
-        internal static bool BlockInput => Time.frameCount == blockedFrame ||
+        internal static void SuppressInputFrame() => blockedFrame = Time.frameCount;
+        internal static bool BlockInput => CategoryEditor.IsOpen || Time.frameCount == blockedFrame ||
             (Plugin.Panel && Plugin.Panel.input && Plugin.Panel.input.isFocused && Plugin.Panel.input.gameObject.activeInHierarchy);
 
         internal void Initialize(InventoryGui gui)
@@ -210,7 +249,7 @@ namespace WorkstationSearch
             styled = true;
         }
 
-        private static void CopyImage(Image source, Image target)
+        internal static void CopyImage(Image source, Image target)
         {
             if (!source) return;
             target.sprite = source.sprite;
@@ -222,7 +261,7 @@ namespace WorkstationSearch
             target.pixelsPerUnitMultiplier = source.pixelsPerUnitMultiplier;
         }
 
-        private static void CopySelectable(Selectable source, Selectable target)
+        internal static void CopySelectable(Selectable source, Selectable target)
         {
             target.colors = source.colors;
             target.spriteState = source.spriteState;
@@ -265,7 +304,7 @@ namespace WorkstationSearch
             rect.offsetMin = new Vector2(left, 0);
             rect.offsetMax = new Vector2(-right, 0);
         }
-        private static TextMeshProUGUI Label(string name, Transform parent, TMP_Text source, string value)
+        internal static TextMeshProUGUI Label(string name, Transform parent, TMP_Text source, string value)
         {
             var label = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
             label.transform.SetParent(parent, false);
@@ -282,6 +321,7 @@ namespace WorkstationSearch
         {
             TryApplyBuildFilterStyle();
             if (!input || !Gui || !InventoryGui.IsVisible()) return;
+            if (CategoryEditor.IsOpen) return;
             bool crafting = (float)CraftTimer.GetValue(Gui) >= 0;
             input.interactable = !crafting;
             if (input.isFocused)
@@ -310,6 +350,7 @@ namespace WorkstationSearch
         }
         private void OnDestroy()
         {
+            CategoryEditor.Close();
             FavoriteRows.Release(Gui);
             if (scroll) scroll.offsetMax = originalOffset;
             if (bar) Destroy(bar);
