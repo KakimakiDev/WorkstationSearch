@@ -16,6 +16,8 @@ A client-side Valheim mod that adds search and favourites to the crafting and up
 
 Install on each player's client. A dedicated server does not need the mod.
 
+Use your mod manager to install Workstation Search and its dependencies, then launch the game through that profile. For manual installation:
+
 1. Install BepInEx 5 for Valheim.
 2. Close Valheim.
 3. Extract the Workstation Search ZIP into your Valheim game folder or mod manager profile, merging the `BepInEx` folder. The plugin should be at `BepInEx/plugins/WorkstationSearch/WorkstationSearch.dll`.
@@ -58,7 +60,7 @@ Every word in your search must match. Item names support partial words, while ca
 
 If no direct matches are found, the mod checks for small spelling mistakes in words of four or more characters. Your typed query stays unchanged.
 
-See [search categories](docs/SEARCH-TAGS.md) for the available terms.
+See [search categories](https://github.com/KakimakiDev/WorkstationSearch/blob/main/docs/SEARCH-TAGS.md) for the available terms.
 
 ## Compatibility
 
@@ -74,8 +76,8 @@ Mods that replace the crafting menu may need additional compatibility support. M
 
 ## Development
 
-See [building and testing](docs/BUILDING.md) for source-build instructions.
+See [building and testing](https://github.com/KakimakiDev/WorkstationSearch/blob/main/docs/BUILDING.md) for source-build instructions.
 
 ## License
 
-[GPL-3.0-only](LICENSE.txt).
+[GPL-3.0-only](https://github.com/KakimakiDev/WorkstationSearch/blob/main/LICENSE.txt).

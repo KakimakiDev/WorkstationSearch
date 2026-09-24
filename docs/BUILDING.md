@@ -12,6 +12,6 @@ The script runs the search tests and builds the plugin. To run only the tests, i
 dotnet run --project tests/WorkstationSearch.Tests.csproj -c Release
 ```
 
-Package a built plugin with `./package.ps1`. The output is a manual-install ZIP under `artifacts`.
+Package a built plugin with `./package.ps1`. The output is a Thunderstore/Hexium-compatible ZIP under `artifacts`, also suitable for manual installation. Keep `manifest.json` and the plugin version in sync. The script validates the manifest version and 256x256 icon before packaging.
 
 See [release validation](VALIDATION.md) for in-game checks.
