@@ -82,7 +82,7 @@ namespace WorkstationSearch
             scroll.content = content;
             scroll.horizontal = false;
             scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 35;
+            scroll.scrollSensitivity = 350;
             var categories = Enum.GetValues(typeof(ItemCategory)).Cast<ItemCategory>().OrderBy(Friendly).ToArray();
             content.sizeDelta = new Vector2(704, ((categories.Length + 2) / 3) * 42);
             for (int i = 0; i < categories.Length; i++)

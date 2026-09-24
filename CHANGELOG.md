@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3
+
+- Increase mouse-wheel scrolling speed in the classification menu.
+
 ## 0.6.2
 
 - Replace category text markers with clickable checkbox controls.

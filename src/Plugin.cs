@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.6.2")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.3")]
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string Id = "local.valheim.craftsearch";
@@ -66,7 +66,7 @@ namespace WorkstationSearch
             Favorites = new FavoriteSet(savedFavorites.Value);
             harmony = new Harmony(Id);
             harmony.PatchAll();
-            Logger.LogInfo("Workstation Search 0.6.2 loaded");
+            Logger.LogInfo("Workstation Search 0.6.3 loaded");
         }
         private void OnDestroy()
         {

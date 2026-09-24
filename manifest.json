@@ -1,6 +1,6 @@
 {
   "name": "Workstation_Search",
-  "version_number": "0.6.2",
+  "version_number": "0.6.3",
   "website_url": "https://github.com/KakimakiDev/WorkstationSearch",
   "description": "Search crafting and upgrade recipes by name or category, pin favourites, handle typos, and customize search terms for modded items. Client-side.",
   "dependencies": ["denikson-BepInExPack_Valheim-5.4.2350"]
