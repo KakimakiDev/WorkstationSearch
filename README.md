@@ -1,82 +1,66 @@
 # Workstation Search
 
-Search crafting and upgrade recipes, keep favourites at the top, and find equipment by category as well as name. A client-side Valheim mod for BepInEx 5.
+A client-side Valheim mod that adds search and favourites to the crafting and upgrade menus. Requires BepInEx 5.
 
 ## Features
 
-- Search both Craft and Upgrade at stations using Valheim's standard crafting menu.
-- Search localized item names, internal prefab names, and displayed titles from compatible mods.
-- Middle-click recipes to toggle persistent favourites.
-- Search categories such as `iron boots`, `arrows`, `helmet`, `food`, and `resist-frost cloak`.
-- Title matches rank above category-only matches within favourites and other results.
-- Conservative typo fallback helps with searches such as `iorn sword` when direct search finds nothing.
-- Cached names and reused recipe rows avoid rebuilding the entire list on every keystroke.
+- Search Craft and Upgrade recipes by item name, including partial names.
+- Find items by category, such as `boots`, `arrows`, `helmet`, or `food`.
+- Combine names and categories, such as `iron boots` or `resist-frost cloak`.
+- Keep favourite recipes at the top, with favourites saved between sessions.
+- Prioritise item-name matches over category-only matches.
+- Find close spelling matches when a search has no direct results.
 
-## Install
+## Installation
 
-Requires Valheim with BepInEx 5 installed. Install on the client, not the dedicated server.
+Install on each player's client. A dedicated server does not need the mod.
 
-1. Close Valheim.
-2. Extract the release archive into your game or mod profile, merging its `BepInEx` folder.
-3. Launch the modded game and open a crafting station.
+1. Install BepInEx 5 for Valheim.
+2. Close Valheim.
+3. Extract the Workstation Search ZIP into your Valheim game folder or mod manager profile, merging the `BepInEx` folder. The plugin should be at `BepInEx/plugins/WorkstationSearch/WorkstationSearch.dll`.
+4. Launch Valheim with BepInEx and open the crafting menu.
 
-If upgrading from a testing build named **Craft Search**, remove the old `CraftSearch.dll` before installing `WorkstationSearch.dll`. Do not load both. The plugin retains `local.valheim.craftsearch` as its internal ID so existing favourites continue to work.
+To update, close Valheim and replace the installed `WorkstationSearch.dll` with the new version. To uninstall, remove that DLL.
 
-Remove `WorkstationSearch.dll` to uninstall.
-
-## Controls
+## How to use
 
 | Action | Control |
 | --- | --- |
-| Filter recipes | Click the search field and type |
+| Search recipes | Click the search field and type |
 | Clear search | Click X |
 | Finish typing | Enter or Escape |
 | Toggle favourite | Middle-click a recipe |
 
-Closing inventory clears the query. Switching Craft/Upgrade keeps it. Search changes wait for an active craft or upgrade to finish; favourite toggles are ignored during that operation.
+Matching favourites appear first, followed by other matching recipes. Within each group, matches in the item title take priority over category matches. Equally relevant results keep the game's sorting order.
 
-Favourites are saved by item type, shared across Craft/Upgrade and characters in the same mod profile. Configuration is stored in `BepInEx/config/local.valheim.craftsearch.cfg`.
+Switching between Craft and Upgrade keeps your search. Closing the inventory clears it. Search changes take effect after an active craft or upgrade finishes; favourites cannot be toggled during that operation.
 
-## Matching and ordering
+Favourites are shared across Craft, Upgrade, and characters in the same mod profile. They are saved in `BepInEx/config/local.valheim.craftsearch.cfg`.
 
-Every search word must match a name or category. Names accept partial words; category aliases match whole words. Matching ignores case and accents. Descriptions are not searched.
+## Search behaviour
 
-Matching favourites appear first. Within each group, items matching more search words in their visible title rank higher, with exact full-title matches winning ties. Equal matches retain the game's sorting order.
+Every word in your search must match. Item names support partial words, while category terms match whole words. Searches ignore capitalisation and accents. Localized names, internal prefab names, and custom recipe titles are searchable. Item descriptions are not searched.
 
-If there are no direct results in the current tab, words of four or more characters allow one insertion, deletion, substitution, or adjacent letter swap. Approximate results are labelled. Shorter terms remain strict. The mod never changes the typed query.
+If no direct matches are found, the mod checks for small spelling mistakes in words of four or more characters. These results are labelled as approximate, and your typed query stays unchanged.
 
-See [search categories](docs/SEARCH-TAGS.md) for aliases and limits.
+See [search categories](docs/SEARCH-TAGS.md) for the available terms.
 
 ## Compatibility
 
-Works through the standard InventoryGui recipe menu, including hand crafting and compatible modded stations. It preserves recipe unlocks, station requirements, costs and item quality. Processing stations without that menu do not receive a search field.
+Works with hand crafting and workstations that use Valheim's standard crafting menu. Processing stations without that menu do not receive a search field. Recipe unlocks, station requirements, crafting costs, and item quality are unchanged.
 
-Mods that replace the crafting UI or add rows after this mod's final list hook require separate compatibility testing. Custom row titles are captured when the list is built. Items with custom equipment slots require additional category mappings. Mouse/keyboard search and middle-click favourites are supported; controller-only text entry and favourite controls are not implemented.
+Modded items receive search categories from their equipment type, weapon skill, ammunition type, food stats, damage, and resistance metadata. Items using custom types may have fewer category matches, but their names remain searchable.
 
-No online service, downloaded dictionary, or third-party fuzzy-search library is used.
-
-## Build and test
-
-Use Windows with the .NET 8 SDK and .NET Framework 4.8 targeting pack. Game and BepInEx assemblies must come from your own installation; they are not included in this repository.
-
-```powershell
-./build.ps1 -GameManaged 'D:/SteamLibrary/steamapps/common/Valheim/valheim_Data/Managed' -BepInExCore 'D:/ValheimProfile/BepInEx/core'
-```
-
-The script runs the pure search tests and builds the plugin. To run only the tests, including on a machine without Valheim:
-
-```powershell
-dotnet run --project tests/WorkstationSearch.Tests.csproj -c Release
-```
-
-Package a built plugin with `./package.ps1`. The output is a manual-install ZIP under `artifacts`. This is not yet a Thunderstore submission package.
-
-Version 0.5.1 is a Workstation Search release candidate with typed metadata categories and a separate English search vocabulary. Workstation Search was renamed from Craft Search 0.4.4. Automated checks do not replace in-game testing. See [validation](docs/VALIDATION.md) for release checks and limitations.
+Mods that replace the crafting menu may need additional compatibility support. Mouse and keyboard are supported; controller-only search and favourite controls are not currently available.
 
 ## Reporting issues
 
-Include your Valheim and mod versions, the station/tab, query, expected result, other UI mods, and relevant log entries. A screenshot is useful for layout or selection issues. Review logs before sharing personal details.
+[Open an issue](https://github.com/KakimakiDev/WorkstationSearch/issues) with your Valheim and mod versions, the workstation and tab, your search text, and what you expected to happen. Include other crafting UI mods and relevant log entries. Screenshots help with layout or selection problems.
+
+## Development
+
+See [building and testing](docs/BUILDING.md) for source-build instructions.
 
 ## License
 
-GPL-3.0-only. See [LICENSE.txt](LICENSE.txt). Valheim, Unity and BepInEx dependencies remain under their respective licences and are not bundled with the source repository.
+[GPL-3.0-only](LICENSE.txt).
