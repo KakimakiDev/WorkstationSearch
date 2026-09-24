@@ -56,7 +56,7 @@ These settings change search results only. Item names remain searchable even if 
 
 Every word in your search must match. Item names support partial words, while category terms match whole words. Searches ignore capitalisation and accents. Localized names, internal prefab names, and custom recipe titles are searchable. Item descriptions are not searched.
 
-If no direct matches are found, the mod checks for small spelling mistakes in words of four or more characters. These results are labelled as approximate, and your typed query stays unchanged.
+If no direct matches are found, the mod checks for small spelling mistakes in words of four or more characters. Your typed query stays unchanged.
 
 See [search categories](docs/SEARCH-TAGS.md) for the available terms.
 

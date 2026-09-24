@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+- Remove the approximate-matches label while keeping typo fallback.
+
 ## 0.6.0
 
 - Add Ctrl + middle-click to edit an item type's search categories and custom search words.

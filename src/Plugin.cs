@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.6.0")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.1")]
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string Id = "local.valheim.craftsearch";
@@ -66,7 +66,7 @@ namespace WorkstationSearch
             Favorites = new FavoriteSet(savedFavorites.Value);
             harmony = new Harmony(Id);
             harmony.PatchAll();
-            Logger.LogInfo("Workstation Search 0.6.0 loaded");
+            Logger.LogInfo("Workstation Search 0.6.1 loaded");
         }
         private void OnDestroy()
         {
@@ -145,11 +145,6 @@ namespace WorkstationSearch
         private Vector2 originalOffset;
         private bool pending;
         private bool styled;
-        private TMP_Text matchStatus;
-        internal void SetApproximate(bool approximate)
-        {
-            if (matchStatus) matchStatus.gameObject.SetActive(approximate);
-        }
         internal void RequestRefresh() => pending = true;
         private static int blockedFrame = -1;
         internal static void SuppressInputFrame() => blockedFrame = Time.frameCount;
@@ -191,16 +186,6 @@ namespace WorkstationSearch
             input.characterLimit = 128;
             input.onValueChanged.AddListener(_ => pending = true);
             input.onEndEdit.AddListener(_ => blockedFrame = Time.frameCount);
-            matchStatus = Label("ApproximateMatches", rect, gui.m_recipeName, "Approximate matches");
-            matchStatus.fontSize = 12;
-            var statusRect = matchStatus.rectTransform;
-            statusRect.anchorMin = new Vector2(0, 1);
-            statusRect.anchorMax = Vector2.one;
-            statusRect.offsetMin = new Vector2(0, 2);
-            statusRect.offsetMax = new Vector2(0, 18);
-            matchStatus.alignment = TextAlignmentOptions.BottomLeft;
-            matchStatus.gameObject.SetActive(false);
-
             var clear = new GameObject("Clear", typeof(RectTransform), typeof(Image), typeof(Button));
             var clearRect = (RectTransform)clear.transform;
             clearRect.SetParent(rect, false);
@@ -341,7 +326,6 @@ namespace WorkstationSearch
         }
         internal void ResetSearch()
         {
-            SetApproximate(false);
             Query = new SearchQuery("");
             pending = false;
             if (!input) return;

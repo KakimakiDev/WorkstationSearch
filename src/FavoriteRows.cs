@@ -101,8 +101,7 @@ namespace WorkstationSearch
             if (owner != __instance || cachedRows == null) return;
             var rows = (IList)Available.GetValue(__instance);
             var query = Plugin.Panel ? Plugin.Panel.Query : new SearchQuery("");
-            var matched = query.SelectMatches(cachedRows, RowEntry, out bool approximate);
-            if (Plugin.Panel) Plugin.Panel.SetApproximate(approximate);
+            var matched = query.SelectMatches(cachedRows, RowEntry, out _);
             var kept = new HashSet<object>(matched);
             foreach (var pair in cachedRows)
             {

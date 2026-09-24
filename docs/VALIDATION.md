@@ -16,7 +16,7 @@ Before publishing a release binary, verify:
 - Search and clear during/after crafting; confirm no incorrect item is crafted.
 - Typing responsiveness with a large modded list and no unexpected recipe-log spam.
 - Custom displayed titles, including Serpent Tow's Harpoon: Karve where installed.
-- Search spacing, approximate-results label, clear-button appearance and different UI scales.
+- Search spacing, clear-button appearance and different UI scales.
 - Ctrl + middle-click opens the editor without toggling favourites; ordinary middle-click still toggles favourites.
 - Category scrolling, custom-word typing, Save, Cancel, Escape, and Reset at different UI scales.
 - Save changes both Craft and Upgrade rows immediately, including duplicate upgrades and custom titles.
