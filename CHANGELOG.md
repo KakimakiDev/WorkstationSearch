@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5
+
+- Block inventory and workstation keyboard shortcuts while typing in search or editing classifications, preventing E from closing the crafting menu.
+
 ## 0.6.4
 
 - Keep the classification scrollbar handle within its track at every scroll position.
