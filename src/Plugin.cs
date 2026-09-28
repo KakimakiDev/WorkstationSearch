@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.6.7")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.13")]
     [BepInDependency("Azumatt.Recycle_N_Reclaim", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
@@ -24,7 +24,6 @@ namespace WorkstationSearch
         private static ConfigEntry<string> savedOverrides;
         private static bool overridesReadable = true;
         private static Plugin instance;
-        internal static void ReportSlowRebuild(string message) => instance.Logger.LogInfo(message);
         internal static bool SaveOverride(string prefab, CategoryOverride value)
         {
             if (!overridesReadable) return false;
@@ -68,8 +67,10 @@ namespace WorkstationSearch
             Favorites = new FavoriteSet(savedFavorites.Value);
             harmony = new Harmony(Id);
             harmony.PatchAll();
+            if (!CraftRowReuse.ReleaseHookReady || !CraftRowReuse.CreationHookReady)
+                Logger.LogWarning("Craft row reuse is unavailable for this recipe implementation; using normal rebuilding.");
             ReclaimCompatibility.Install(harmony, Logger);
-            Logger.LogInfo("Workstation Search 0.6.7 loaded");
+            Logger.LogInfo("Workstation Search 0.6.13 loaded");
         }
         private void OnDestroy()
         {
@@ -141,6 +142,7 @@ namespace WorkstationSearch
     {
         private static readonly FieldInfo CraftTimer = AccessTools.Field(typeof(InventoryGui), "m_craftTimer");
         internal InventoryGui Gui;
+        internal ScrollRect RecipeScroll;
         internal SearchQuery Query = new SearchQuery("");
         private TMP_InputField input;
         private GameObject bar;
@@ -158,6 +160,9 @@ namespace WorkstationSearch
         {
             Gui = gui;
             var scrolling = gui.m_recipeListRoot.GetComponentInParent<ScrollRect>();
+            RecipeScroll = scrolling;
+            gui.m_recipeListRoot.gameObject.AddComponent<RecipeWheelScroll>();
+            gui.m_recipeListScroll.gameObject.AddComponent<RecipeWheelScroll>();
             scroll = scrolling ? (RectTransform)scrolling.transform : gui.m_recipeListRoot.parent as RectTransform;
             originalOffset = scroll.offsetMax;
             bar = new GameObject("CraftSearch", typeof(RectTransform), typeof(Image));
@@ -344,6 +349,13 @@ namespace WorkstationSearch
         {
             CategoryEditor.Close();
             FavoriteRows.Release(Gui);
+            if (Gui)
+            {
+                var contentWheel = Gui.m_recipeListRoot.GetComponent<RecipeWheelScroll>();
+                if (contentWheel) Destroy(contentWheel);
+                var barWheel = Gui.m_recipeListScroll.GetComponent<RecipeWheelScroll>();
+                if (barWheel) Destroy(barWheel);
+            }
             if (scroll) scroll.offsetMax = originalOffset;
             if (bar) Destroy(bar);
             if (Plugin.Panel == this) Plugin.Panel = null;

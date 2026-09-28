@@ -130,6 +130,15 @@ internal static class Program
         OverrideRegression.Run(Check);
         RowListRegression.Run(Check);
         RowEntryCacheRegression.Run(Check);
+        RebuildPoolRegression.Run(Check);
+        foreach (int count in new[] { 15, 30, 100, 1000 })
+        {
+            float step = WheelStep.FromVisibleFraction(12f / count);
+            Check("wheel moves four of twelve visible rows with " + count + " total recipes",
+                Math.Abs(step * (count - 12) - Math.Min(4, count - 12)) < 0.0001f);
+        }
+        Check("fully visible list does not scroll", WheelStep.FromVisibleFraction(1) == 0);
+        Check("empty list does not scroll", WheelStep.FromVisibleFraction(0) == 0);
         Console.WriteLine($"{checks} search, ranking, row title, category, typo and favourite behavior checks passed.");
         return 0;
     }

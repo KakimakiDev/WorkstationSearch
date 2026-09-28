@@ -11,6 +11,8 @@ A client-side Valheim mod that adds search and favourites to the crafting and up
 - Prioritise item-name matches over category-only matches.
 - Find close spelling matches when a search has no direct results.
 - Customize categories and search words for individual item types.
+- Search Recycle_N_Reclaim's Reclaim tab without mixing reclaimed items into Craft or Upgrade.
+- Scroll roughly one-third of the visible recipe list per mouse-wheel event.
 
 ## Installation
 
@@ -69,6 +71,8 @@ Works with hand crafting and workstations that use Valheim's standard crafting m
 Modded items receive search categories from their equipment type, weapon skill, ammunition type, food stats, damage, and resistance metadata. Items using custom types may have fewer category matches, but their names remain searchable.
 
 Mods that replace the crafting menu may need additional compatibility support. Mouse and keyboard are supported; controller-only search and favourite controls are not currently available.
+
+Recycle_N_Reclaim has dedicated compatibility support. Its Reclaim list can be searched while preserving the association between each displayed item and the item being reclaimed.
 
 ## Reporting issues
 

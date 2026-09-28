@@ -46,11 +46,11 @@ namespace WorkstationSearch
         // Give vanilla ownership of every row, including hidden rows, before it
         // destroys/rebuilds the list for an inventory or station change.
         [HarmonyPriority(Priority.First)]
-        private static void Prefix(InventoryGui __instance, out RebuildTiming __state)
+        private static void Prefix(InventoryGui __instance)
         {
-            __state = new RebuildTiming();
             BeforeRebuild(__instance);
-            __state.Restored();
+            CraftRowReuse.Begin(__instance, ((IList)Available.GetValue(__instance)).Cast<object>()
+                .Select(pair => (GameObject)Element.GetValue(pair, null)));
         }
 
         internal static void BeforeRebuild(InventoryGui __instance)
@@ -70,11 +70,10 @@ namespace WorkstationSearch
         }
 
         [HarmonyPriority(Priority.Last)]
-        private static void Postfix(InventoryGui __instance, RebuildTiming __state)
+        private static void Postfix(InventoryGui __instance)
         {
-            __state?.BeginCapture();
+            CraftRowReuse.Finish();
             Capture(__instance, false);
-            __state?.Finish(false);
         }
 
         internal static void Capture(InventoryGui __instance, bool keepIndices)

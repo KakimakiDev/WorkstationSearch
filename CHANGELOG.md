@@ -1,17 +1,13 @@
 # Changelog
 
-## 0.6.7
+## 0.6.13
 
-- Reuse search entries across recipe rebuilds and skip indexing when search is empty.
-- Create favourite stars only for favourites and avoid unnecessary row hierarchy changes.
-- Skip search layout work on fresh lists when there is no query or saved favourite.
-- Log slow rebuild timings separately for search and game/other-mod work, at most once every five seconds.
-
-## 0.6.6
-
-- Support searching Recycle_N_Reclaim's reclaim list while preserving its per-item selection indices.
-- Restore hidden recipe rows before reclaim rebuilds, preventing stale rows from overlapping crafting recipes.
-- Discard stale row caches when another mod replaces or destroys their entries.
+- Add search compatibility for Recycle_N_Reclaim and fix stale reclaim entries overlapping the crafting list.
+- Preserve the correct reclaim target when filtering, sorting and changing selection.
+- Reuse Craft recipe rows during inventory updates, reducing repeated stutter with large no-cost recipe lists.
+- Reuse search entries and skip unnecessary indexing and layout work when search is empty.
+- Move roughly one-third of the visible recipe list per mouse-wheel event, independent of total recipe count.
+- Remove temporary debugging and performance logs.
 
 ## 0.6.5
 

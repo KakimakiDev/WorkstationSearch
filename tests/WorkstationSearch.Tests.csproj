@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><RestoreSources></RestoreSources></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../src/WheelStep.cs" Link="WheelStep.cs" />
+    <Compile Include="../src/RebuildPool.cs" Link="RebuildPool.cs" />
     <Compile Include="../src/RowEntryCache.cs" Link="RowEntryCache.cs" />
     <Compile Include="../src/RowListPolicy.cs" Link="RowListPolicy.cs" />
     <Compile Include="../src/CategoryOverrides.cs" Link="CategoryOverrides.cs" />

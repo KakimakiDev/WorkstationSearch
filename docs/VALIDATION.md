@@ -24,4 +24,6 @@ Before publishing a release binary, verify:
 - Saved overrides survive restart, removal of a mod, edits to another item, and reinstallation of the original mod.
 - Reset clears only the selected item after Save; Cancel leaves its saved settings unchanged.
 
-The renamed release candidate still requires this in-game pass. Prior testing-build feedback is not a claim that every mod combination or station has been verified.
+The regression suite also covers recipe-row ownership and wheel movement across different list sizes. The optional `tests/VerifyUnityHooks.ps1` script checks Unity method lookup, the row-creation transpiler, its unsupported-shape fallback, and scroll argument bindings using local game and BepInEx assemblies.
+
+For 0.6.13, 2,948 automated checks passed and the Unity hook checks passed. In-game feedback confirmed improved inventory-movement performance with no-cost recipes and the corrected wheel scrolling. This does not establish coverage of every mod combination or eliminate the initial bench-opening pause.
