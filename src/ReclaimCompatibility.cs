@@ -23,14 +23,18 @@ namespace WorkstationSearch
             log.LogInfo("Recycle_N_Reclaim search compatibility enabled");
         }
 
-        private static void BeforeRebuild()
+        private static void BeforeRebuild(out RebuildTiming __state)
         {
+            __state = new RebuildTiming();
             if (InventoryGui.instance) FavoriteRows.BeforeRebuild(InventoryGui.instance);
+            __state.Restored();
         }
 
-        private static void AfterRebuild()
+        private static void AfterRebuild(RebuildTiming __state)
         {
+            __state?.BeginCapture();
             if (InventoryGui.instance) FavoriteRows.Capture(InventoryGui.instance, true);
+            __state?.Finish(true);
         }
     }
 }

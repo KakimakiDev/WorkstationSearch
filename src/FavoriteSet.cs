@@ -13,6 +13,7 @@ namespace WorkstationSearch
                 if (token.Length > 0) items.Add(Uri.UnescapeDataString(token));
         }
         internal bool Contains(string key) => key != null && items.Contains(key);
+        internal bool IsEmpty => items.Count == 0;
         internal void Toggle(string key)
         {
             if (string.IsNullOrEmpty(key)) return;

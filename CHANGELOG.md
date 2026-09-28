@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.7
+
+- Reuse search entries across recipe rebuilds and skip indexing when search is empty.
+- Create favourite stars only for favourites and avoid unnecessary row hierarchy changes.
+- Skip search layout work on fresh lists when there is no query or saved favourite.
+- Log slow rebuild timings separately for search and game/other-mod work, at most once every five seconds.
+
 ## 0.6.6
 
 - Support searching Recycle_N_Reclaim's reclaim list while preserving its per-item selection indices.

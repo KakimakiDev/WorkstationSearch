@@ -37,11 +37,12 @@ namespace WorkstationSearch
         internal List<T> SelectMatches<T>(IEnumerable<T> source, Func<T, SpellingEntry> entry, out bool approximate)
         {
             var candidates = source.ToList();
+            approximate = false;
+            if (IsEmpty) return candidates;
             var matches = candidates.FindAll(row => {
                 var item = entry(row);
                 return item == null || item.DirectMatches(compiledTerms);
             });
-            approximate = false;
             if (!IsEmpty && matches.Count == 0)
             {
                 matches = candidates.FindAll(row => FuzzyMatches(entry(row)));

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.6.6")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.7")]
     [BepInDependency("Azumatt.Recycle_N_Reclaim", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
@@ -24,6 +24,7 @@ namespace WorkstationSearch
         private static ConfigEntry<string> savedOverrides;
         private static bool overridesReadable = true;
         private static Plugin instance;
+        internal static void ReportSlowRebuild(string message) => instance.Logger.LogInfo(message);
         internal static bool SaveOverride(string prefab, CategoryOverride value)
         {
             if (!overridesReadable) return false;
@@ -68,7 +69,7 @@ namespace WorkstationSearch
             harmony = new Harmony(Id);
             harmony.PatchAll();
             ReclaimCompatibility.Install(harmony, Logger);
-            Logger.LogInfo("Workstation Search 0.6.6 loaded");
+            Logger.LogInfo("Workstation Search 0.6.7 loaded");
         }
         private void OnDestroy()
         {

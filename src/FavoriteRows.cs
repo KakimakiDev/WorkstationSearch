@@ -25,19 +25,33 @@ namespace WorkstationSearch
         private static List<object> cachedRows;
         private static List<object> appliedRows;
         private static bool preserveIndices;
+        private static readonly RowEntryCache SearchEntries = new RowEntryCache();
         private static readonly Dictionary<GameObject, SpellingEntry> RowEntries = new Dictionary<GameObject, SpellingEntry>();
         private static SpellingEntry RowEntry(object pair)
         {
             var row = (GameObject)Element.GetValue(pair, null);
-            return row && RowEntries.TryGetValue(row, out var entry) ? entry : null;
+            if (!row) return null;
+            if (!RowEntries.TryGetValue(row, out var entry))
+            {
+                var titleRoot = row.transform.Find("name");
+                var title = titleRoot ? titleRoot.GetComponent<TMP_Text>() : null;
+                entry = SearchEntries.Get(SearchCatalog.Get((Recipe)RecipeProperty.GetValue(pair, null)),
+                    title ? title.text : null, Plugin.Overrides);
+                RowEntries[row] = entry;
+            }
+            return entry;
         }
         internal static string Key(Recipe recipe) => recipe && recipe.m_item ? recipe.m_item.name : null;
 
         // Give vanilla ownership of every row, including hidden rows, before it
         // destroys/rebuilds the list for an inventory or station change.
         [HarmonyPriority(Priority.First)]
-        private static void Prefix(InventoryGui __instance)
-            => BeforeRebuild(__instance);
+        private static void Prefix(InventoryGui __instance, out RebuildTiming __state)
+        {
+            __state = new RebuildTiming();
+            BeforeRebuild(__instance);
+            __state.Restored();
+        }
 
         internal static void BeforeRebuild(InventoryGui __instance)
         {
@@ -56,12 +70,15 @@ namespace WorkstationSearch
         }
 
         [HarmonyPriority(Priority.Last)]
-        private static void Postfix(InventoryGui __instance)
-            => Capture(__instance, false);
+        private static void Postfix(InventoryGui __instance, RebuildTiming __state)
+        {
+            __state?.BeginCapture();
+            Capture(__instance, false);
+            __state?.Finish(false);
+        }
 
         internal static void Capture(InventoryGui __instance, bool keepIndices)
         {
-            SearchCatalog.Ensure();
             owner = __instance;
             preserveIndices = keepIndices;
             RowEntries.Clear();
@@ -71,18 +88,15 @@ namespace WorkstationSearch
             {
                 var row = (GameObject)Element.GetValue(pair, null);
                 var recipe = (Recipe)RecipeProperty.GetValue(pair, null);
-                var entry = SearchCatalog.Get(recipe);
-                var titleRoot = row.transform.Find("name");
-                var title = titleRoot ? titleRoot.GetComponent<TMP_Text>() : null;
-                if (title && !string.IsNullOrWhiteSpace(title.text))
-                    entry = (entry ?? new SpellingEntry("", "")).WithDisplayName(title.text);
-                RowEntries[row] = Plugin.Overrides.Apply(entry);
                 string key = Key(recipe);
                 if (string.IsNullOrEmpty(key)) continue;
                 var control = row.GetComponent<FavoriteRow>() ?? row.AddComponent<FavoriteRow>();
                 control.Initialize(__instance, key);
             }
-            Apply(__instance, false);
+            // Fresh native rows already have their correct layout. An idle search
+            // with no favourites needs no indexing, sorting or UI mutations.
+            if ((Plugin.Panel && !Plugin.Panel.Query.IsEmpty) || !Plugin.Favorites.IsEmpty)
+                Apply(__instance, false);
         }
 
         private static bool IsAlive(object pair) => (GameObject)Element.GetValue(pair, null);
@@ -144,6 +158,7 @@ namespace WorkstationSearch
                 return;
             }
             var query = Plugin.Panel ? Plugin.Panel.Query : new SearchQuery("");
+            if (!query.IsEmpty) SearchCatalog.Ensure();
             var matched = query.SelectMatches(cachedRows, RowEntry, out _);
             var kept = new HashSet<object>(matched);
             foreach (var pair in cachedRows)
@@ -167,7 +182,6 @@ namespace WorkstationSearch
                 var rect = (RectTransform)row.transform;
                 var position = new Vector2(0, -i * __instance.m_recipeListSpace);
                 if (rect.anchoredPosition != position) rect.anchoredPosition = position;
-                if (row.transform.GetSiblingIndex() != i) row.transform.SetSiblingIndex(i);
             }
             appliedRows = RowListPolicy.ApplyVisibleOrder(rows, ordered, preserveIndices);
             if (updateSelection && !preserveIndices)
@@ -234,6 +248,11 @@ namespace WorkstationSearch
         {
             gui = owner;
             key = itemKey;
+            RefreshMarker();
+        }
+
+        private void CreateMarker()
+        {
             if (!marker)
             {
                 marker = new GameObject("CraftSearchFavorite", typeof(RectTransform));
@@ -274,12 +293,12 @@ namespace WorkstationSearch
                     text.raycastTarget = false;
                 }
             }
-            RefreshMarker();
         }
 
         internal void RefreshMarker()
         {
             bool active = Plugin.Favorites.Contains(key);
+            if (active && !marker) CreateMarker();
             if (marker && marker.activeSelf != active) marker.SetActive(active);
         }
 
@@ -295,7 +314,7 @@ namespace WorkstationSearch
                 return;
             }
             Plugin.ToggleFavorite(key);
-            marker.SetActive(Plugin.Favorites.Contains(key));
+            RefreshMarker();
             if (Plugin.Panel) Plugin.Panel.RequestRefresh();
         }
     }
