@@ -11,7 +11,8 @@ using UnityEngine.UI;
 
 namespace WorkstationSearch
 {
-    [BepInPlugin(Id, "Workstation Search", "0.6.5")]
+    [BepInPlugin(Id, "Workstation Search", "0.6.6")]
+    [BepInDependency("Azumatt.Recycle_N_Reclaim", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string Id = "local.valheim.craftsearch";
@@ -66,7 +67,8 @@ namespace WorkstationSearch
             Favorites = new FavoriteSet(savedFavorites.Value);
             harmony = new Harmony(Id);
             harmony.PatchAll();
-            Logger.LogInfo("Workstation Search 0.6.5 loaded");
+            ReclaimCompatibility.Install(harmony, Logger);
+            Logger.LogInfo("Workstation Search 0.6.6 loaded");
         }
         private void OnDestroy()
         {

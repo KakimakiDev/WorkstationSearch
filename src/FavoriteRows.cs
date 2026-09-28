@@ -23,6 +23,8 @@ namespace WorkstationSearch
         private static readonly FieldInfo Selected = AccessTools.Field(typeof(InventoryGui), "m_selectedRecipe");
         private static InventoryGui owner;
         private static List<object> cachedRows;
+        private static List<object> appliedRows;
+        private static bool preserveIndices;
         private static readonly Dictionary<GameObject, SpellingEntry> RowEntries = new Dictionary<GameObject, SpellingEntry>();
         private static SpellingEntry RowEntry(object pair)
         {
@@ -35,22 +37,36 @@ namespace WorkstationSearch
         // destroys/rebuilds the list for an inventory or station change.
         [HarmonyPriority(Priority.First)]
         private static void Prefix(InventoryGui __instance)
+            => BeforeRebuild(__instance);
+
+        internal static void BeforeRebuild(InventoryGui __instance)
         {
             if (owner != __instance || cachedRows == null) return;
             var rows = (IList)Available.GetValue(__instance);
-            rows.Clear();
-            foreach (var row in cachedRows) rows.Add(row);
+            if (OwnsCurrentRows(rows))
+            {
+                rows.Clear();
+                foreach (var row in cachedRows)
+                    if (IsAlive(row)) rows.Add(row);
+            }
+            else DiscardDetachedRows(rows);
             cachedRows = null;
+            appliedRows = null;
             RowEntries.Clear();
         }
 
         [HarmonyPriority(Priority.Last)]
         private static void Postfix(InventoryGui __instance)
+            => Capture(__instance, false);
+
+        internal static void Capture(InventoryGui __instance, bool keepIndices)
         {
             SearchCatalog.Ensure();
             owner = __instance;
+            preserveIndices = keepIndices;
             RowEntries.Clear();
-            cachedRows = ((IList)Available.GetValue(__instance)).Cast<object>().ToList();
+            cachedRows = ((IList)Available.GetValue(__instance)).Cast<object>().Where(IsAlive).ToList();
+            appliedRows = ((IList)Available.GetValue(__instance)).Cast<object>().ToList();
             foreach (var pair in cachedRows)
             {
                 var row = (GameObject)Element.GetValue(pair, null);
@@ -67,6 +83,27 @@ namespace WorkstationSearch
                 control.Initialize(__instance, key);
             }
             Apply(__instance, false);
+        }
+
+        private static bool IsAlive(object pair) => (GameObject)Element.GetValue(pair, null);
+
+        private static bool OwnsCurrentRows(IList rows) => RowListPolicy.MatchesSnapshot(rows, appliedRows);
+
+        // A mod can replace the list outside either known rebuild hook. Never
+        // overwrite its new rows with our old snapshot or leave hidden rows orphaned.
+        private static void DiscardDetachedRows(IList rows)
+        {
+            var current = new HashSet<GameObject>(rows.Cast<object>()
+                .Select(pair => (GameObject)Element.GetValue(pair, null)));
+            foreach (var pair in cachedRows)
+            {
+                var row = (GameObject)Element.GetValue(pair, null);
+                if (row && !current.Contains(row))
+                {
+                    row.SetActive(false);
+                    UnityEngine.Object.Destroy(row);
+                }
+            }
         }
 
         private static SpellingEntry BaseEntry(object pair)
@@ -100,6 +137,12 @@ namespace WorkstationSearch
         {
             if (owner != __instance || cachedRows == null) return;
             var rows = (IList)Available.GetValue(__instance);
+            if (!OwnsCurrentRows(rows) || cachedRows.Any(pair => !IsAlive(pair)))
+            {
+                DiscardDetachedRows(rows);
+                Release(__instance);
+                return;
+            }
             var query = Plugin.Panel ? Plugin.Panel.Query : new SearchQuery("");
             var matched = query.SelectMatches(cachedRows, RowEntry, out _);
             var kept = new HashSet<object>(matched);
@@ -111,7 +154,8 @@ namespace WorkstationSearch
                 var favorite = element.GetComponent<FavoriteRow>();
                 if (favorite) favorite.RefreshMarker();
             }
-            rows.Clear();
+            // Reclaim has a parallel analysis list indexed by the original row
+            // order. Filter and rank its visuals without changing item indices.
             float baseSize = (float)BaseSize.GetValue(__instance);
             __instance.m_recipeListRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(baseSize, matched.Count * __instance.m_recipeListSpace));
             var ranked = query.RankMatches(matched, RowEntry);
@@ -119,14 +163,14 @@ namespace WorkstationSearch
                 Plugin.Favorites.Contains(Key((Recipe)RecipeProperty.GetValue(row, null))));
             for (int i = 0; i < ordered.Count; i++)
             {
-                rows.Add(ordered[i]);
                 var row = (GameObject)Element.GetValue(ordered[i], null);
                 var rect = (RectTransform)row.transform;
                 var position = new Vector2(0, -i * __instance.m_recipeListSpace);
                 if (rect.anchoredPosition != position) rect.anchoredPosition = position;
                 if (row.transform.GetSiblingIndex() != i) row.transform.SetSiblingIndex(i);
             }
-            if (updateSelection)
+            appliedRows = RowListPolicy.ApplyVisibleOrder(rows, ordered, preserveIndices);
+            if (updateSelection && !preserveIndices)
             {
                 int index = rows.Count == 0 ? -1 : (int)SelectedIndex.Invoke(__instance, new object[] { true });
                 // Keep unchanged selection details without rerunning vanilla's
@@ -142,6 +186,12 @@ namespace WorkstationSearch
         {
             if (owner != gui || cachedRows == null) return;
             var selectedElement = (GameObject)Element.GetValue(Selected.GetValue(gui), null);
+            if (preserveIndices && selectedElement && !selectedElement.activeSelf)
+            {
+                // Do not leave a filtered-out item armed for reclaiming.
+                SetRecipe.Invoke(gui, new object[] { -1, false });
+                return;
+            }
             foreach (var pair in cachedRows)
             {
                 var row = (GameObject)Element.GetValue(pair, null);
@@ -158,6 +208,8 @@ namespace WorkstationSearch
             if (owner != gui) return;
             owner = null;
             cachedRows = null;
+            appliedRows = null;
+            preserveIndices = false;
             RowEntries.Clear();
         }
     }

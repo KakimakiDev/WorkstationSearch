@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.6
+
+- Support searching Recycle_N_Reclaim's reclaim list while preserving its per-item selection indices.
+- Restore hidden recipe rows before reclaim rebuilds, preventing stale rows from overlapping crafting recipes.
+- Discard stale row caches when another mod replaces or destroys their entries.
+
 ## 0.6.5
 
 - Block inventory and workstation keyboard shortcuts while typing in search or editing classifications, preventing E from closing the crafting menu.
